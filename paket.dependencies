@@ -30,8 +30,8 @@ group Tool6
   nuget Microsoft.Build                       >= 0.0.0.0 lowest_matching: true
   nuget NuGet.Frameworks                      ~> 6.7.0
 
-group Tool7
-  framework:net7.0
+group Tool8
+  framework:net8.0
   source https://api.nuget.org/v3/index.json
   nuget FSharp.Core                           >= 6.0.0 lowest_matching: true
   nuget FSharp.Compiler.Service               ~> 43.7.400

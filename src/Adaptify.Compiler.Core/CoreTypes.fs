@@ -9,7 +9,7 @@ module AdaptiveTypes =
     module Option =
         let typ (t : TypeRef) =
             TExtRef(Namespace "Microsoft.FSharp.Core", "Option", [t])
-            
+
         let some (t : TypeRef) =
             {
                 declaringType = Choice2Of2 (typ t)
@@ -27,26 +27,26 @@ module AdaptiveTypes =
                 parameters = []
                 returnType = typ t
             }
- 
+
     module HashSet =
-        let typ (t : TypeRef) =    
+        let typ (t : TypeRef) =
             TExtRef(fda, "HashSet", [t])
-        
+
     module HashMap =
-        let typ (k : TypeRef) (v : TypeRef) =    
+        let typ (k : TypeRef) (v : TypeRef) =
             TExtRef(fda, "HashMap", [k;v])
 
     module IndexList =
-        let typ (t : TypeRef) =    
+        let typ (t : TypeRef) =
             TExtRef(fda, "IndexList", [t])
     module AdaptiveToken =
-        let typ  =    
+        let typ  =
             TExtRef(fda, "AdaptiveToken", [])
-             
+
     module AVal =
-        let typ (t : TypeRef) =    
+        let typ (t : TypeRef) =
             TExtRef(fda, "aval", [t])
-            
+
         let custom (t : TypeRef) =
             {
                 declaringType = Choice1Of2 (Module(fda, "AVal", false, false))
@@ -55,9 +55,9 @@ module AdaptiveTypes =
                 parameters = [ TFunc(AdaptiveToken.typ, t) ]
                 returnType = typ t
             }
-            
+
     module Transaction =
-        let transact (t : TypeRef) = 
+        let transact (t : TypeRef) =
             {
                 declaringType = Choice1Of2 (Module(fda, "Transaction", false, false))
                 isStatic = true
@@ -67,9 +67,9 @@ module AdaptiveTypes =
             }
 
     module AdaptiveObject =
-        let typ  =    
+        let typ  =
             TExtRef(fda, "AdaptiveObject", [])
-            
+
         let markOutdated =
             {
                 declaringType = Choice2Of2 typ
@@ -78,17 +78,17 @@ module AdaptiveTypes =
                 parameters = [ ]
                 returnType = TTuple(false, [])
             }
-            
+
 
     module AbstractAdaptiveValue =
-        let typ (t : TypeRef) =    
+        let typ (t : TypeRef) =
             TExtRef(adaptify, "AdaptiveValue", [t])
 
     module Lazy =
         let typ (t : TypeRef) =
             TExtRef(Namespace "System", "Lazy", [t])
-            
-        let ll (f : unit -> 'a) = System.Lazy<_>(f)
+
+        let ll (f : unit -> 'a) = System.Lazy<'a>(f)
 
         let ctor (t : TypeRef) =
             {
@@ -118,7 +118,7 @@ module AdaptiveTypes =
 
 
     module CVal =
-        let typ (t : TypeRef) = 
+        let typ (t : TypeRef) =
             TExtRef(fda, "cval", [t])
 
         let setValue (t : TypeRef) =
@@ -129,7 +129,7 @@ module AdaptiveTypes =
                 parameters = [ t ]
                 returnType = TTuple(false, [])
             }
-            
+
         let ctor (t : TypeRef) =
             {
                 declaringType = Choice1Of2(fda)
@@ -140,11 +140,11 @@ module AdaptiveTypes =
             }
 
     module ASet =
-        let typ (t : TypeRef) =    
+        let typ (t : TypeRef) =
             TExtRef(fda, "aset", [t])
 
     module CSet =
-        let typ (t : TypeRef) =  
+        let typ (t : TypeRef) =
             TExtRef(fda, "cset", [t])
 
         let setValue (t : TypeRef) =
@@ -155,7 +155,7 @@ module AdaptiveTypes =
                 parameters = [ HashSet.typ t ]
                 returnType = TTuple(false, [])
             }
-            
+
         let ctor (t : TypeRef) =
             {
                 declaringType = Choice1Of2(fda)
@@ -166,11 +166,11 @@ module AdaptiveTypes =
             }
 
     module AList =
-        let typ (t : TypeRef) =    
+        let typ (t : TypeRef) =
             TExtRef(fda, "alist", [t])
 
     module CList =
-        let typ (t : TypeRef) =  
+        let typ (t : TypeRef) =
             TExtRef(fda, "clist", [t])
 
         let setValue (t : TypeRef) =
@@ -181,7 +181,7 @@ module AdaptiveTypes =
                 parameters = [ IndexList.typ t ]
                 returnType = TTuple(false, [])
             }
-            
+
         let ctor (t : TypeRef) =
             {
                 declaringType = Choice1Of2(fda)
@@ -192,11 +192,11 @@ module AdaptiveTypes =
             }
 
     module AMap =
-        let typ (k : TypeRef) (v : TypeRef) =    
+        let typ (k : TypeRef) (v : TypeRef) =
             TExtRef(fda, "amap", [k; v])
 
     module CMap =
-        let typ (k : TypeRef) (v : TypeRef) =  
+        let typ (k : TypeRef) (v : TypeRef) =
             TExtRef(fda, "cmap", [k; v])
 
         let setValue (k : TypeRef) (v : TypeRef) =
@@ -207,7 +207,7 @@ module AdaptiveTypes =
                 parameters = [ HashMap.typ k v ]
                 returnType = TTuple(false, [])
             }
-            
+
         let ctor (k : TypeRef) (v : TypeRef) =
             {
                 declaringType = Choice1Of2(fda)
@@ -230,15 +230,15 @@ module AdaptiveTypes =
                 parameters = [ HashMap.typ k a ]
                 returnType = TTuple(false, [])
             }
-            
+
         let ctor (k : TypeRef) (a : TypeRef) (ca : TypeRef) (aa : TypeRef) =
             {
                 declaringType = Choice1Of2(fdt)
                 isStatic = true
                 name = "ChangeableModelMap"
-                parameters = 
-                    [ 
-                        HashMap.typ k a 
+                parameters =
+                    [
+                        HashMap.typ k a
                         TFunc(a, ca)
                         TFunc(ca, TFunc(a, ca))
                         TFunc(ca, aa)
@@ -246,7 +246,7 @@ module AdaptiveTypes =
                 returnType = typ k a ca aa
             }
 
-    module Adaptor = 
+    module Adaptor =
         let typ (a : TypeRef) (aa : TypeRef) =
             TExtRef(adaptify, "Unpersist", [a; aa])
 
@@ -271,15 +271,15 @@ module AdaptiveTypes =
                 parameters = [ IndexList.typ a ]
                 returnType = TTuple(false, [])
             }
-            
+
         let ctor (a : TypeRef) (ca : TypeRef) (aa : TypeRef) =
             {
                 declaringType = Choice1Of2(fdt)
                 isStatic = true
                 name = "ChangeableModelList"
-                parameters = 
-                    [ 
-                        IndexList.typ a 
+                parameters =
+                    [
+                        IndexList.typ a
                         TFunc(a, ca)
                         TFunc(ca, TFunc(a, ca))
                         TFunc(ca, aa)
@@ -299,7 +299,7 @@ module AdaptiveTypes =
         //        parameters = [ typ; typ ]
         //        returnType = TBool
         //    }
-            
+
 
     let notMeth =
         {
@@ -309,7 +309,7 @@ module AdaptiveTypes =
             parameters = [ TBool ]
             returnType = TBool
         }
-  
+
     let shallowEquals (t : TypeRef) =
         {
             declaringType = Choice2Of2(TExtRef(fda, "ShallowEqualityComparer", [t]))

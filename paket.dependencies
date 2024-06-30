@@ -24,14 +24,3 @@ group Tool
   nuget BlackFox.VsWhere                      ~> 1.1.0
   nuget Ionide.ProjInfo                       ~> 0.60.1
 
-group Build
-  source https://api.nuget.org/v3/index.json
-  framework: net8.0
-  nuget FSharp.DependencyManager.Paket ~> 6.2.1
-  nuget Fake.DotNet.Cli ~> 5.20.0
-  nuget Fake.Core.Target ~> 5.20.0
-  nuget Fake.DotNet.Paket ~> 5.20.0
-  nuget Fake.Core.ReleaseNotes ~> 5.20.0
-  nuget Fake.Tools.Git ~> 5.20.0
-  nuget ILRepack ~> 2.0.18
-

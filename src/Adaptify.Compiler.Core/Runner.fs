@@ -14,12 +14,12 @@ module Adaptify =
     let private waitUntilExisting (log : ILog) (timeout : int) (files : seq<string>) =
         let sw = System.Diagnostics.Stopwatch.StartNew()
 
-        let rec run (iter : int) (files : string[]) = 
+        let rec run (iter : int) (files : string[]) =
             if files.Length = 0 then
                 [||]
             elif iter = 0 || (iter < 50 && sw.Elapsed.TotalMilliseconds <= float timeout) then
                 if iter > 0 then log.debug Range.range0 "%d references missing -> retry" files.Length
-                let remaining = 
+                let remaining =
                     files |> Array.filter (fun f ->
                         if File.Exists f then false
                         else true
@@ -31,7 +31,7 @@ module Adaptify =
                 else
                     [||]
             else
-                if iter > 0 then 
+                if iter > 0 then
                     log.debug Range.range0 "%d references missing" files.Length
                     for i,f in Seq.indexed files do
                         log.debug Range.range0 "    %d: %s" i f
@@ -63,8 +63,8 @@ module Adaptify =
 
     let getReplacementCode (log : ILog) (createLenses : bool) (res : FSharpCheckFileResults) (code : string) =
 
-        let errs, wrns = 
-            res.Diagnostics 
+        let errs, wrns =
+            res.Diagnostics
             |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Warning || e.Severity = FSharpDiagnosticSeverity.Error)
             |> Array.partition (fun err -> err.Severity = FSharpDiagnosticSeverity.Error)
         if errs.Length > 0 then
@@ -90,7 +90,7 @@ module Adaptify =
             | _ ->
                 []
 
-        let entities = 
+        let entities =
             match res.ImplementationFile with
             | Some impl ->
                 impl.Declarations
@@ -99,8 +99,8 @@ module Adaptify =
             | None ->
                 []
 
-        let definitions =   
-            entities 
+        let definitions =
+            entities
             |> List.choose (TypeDef.ofEntity log)
             |> List.map (fun l -> l.Value)
             |> List.collect (TypeDefinition.ofTypeDef log createLenses [])
@@ -108,7 +108,7 @@ module Adaptify =
         match definitions with
         | [] ->
             code
-        | _ -> 
+        | _ ->
             let defs = definitions |> List.toArray |> Array.collect (TypeDefinition.toString log)
 
 
@@ -124,9 +124,9 @@ module Adaptify =
             let m = rx.Match code
             if m.Success then
                 let _isRec = m.Groups.[3].Success
-                sprintf "%s%s rec %s\r\n%s%s\r\n%s" 
-                    m.Groups.[1].Value 
-                    m.Groups.[2].Value 
+                sprintf "%s%s rec %s\r\n%s%s\r\n%s"
+                    m.Groups.[1].Value
+                    m.Groups.[2].Value
                     m.Groups.[4].Value
                     (nowarns + "\r\n#line 2")
                     (code.Substring(m.Index + m.Length))
@@ -140,7 +140,7 @@ module Adaptify =
                     indentStr code
                     yield! indent defs
                 ]
-               
+
 
     let runAsync (checker : FSharpChecker) (outputPath : string) (designTime : bool) (useCache : bool) (createLenses : bool) (log : ILog) (local : bool) (release : bool) (projectInfo : ProjectInfo) =
         async {
@@ -150,8 +150,8 @@ module Adaptify =
             let hash = ProjectInfo.computeHash projectInfo
             let projectFile = projectInfo.project
             let projDir = Path.GetDirectoryName projectFile
-            let outputDirectory = 
-                let dir = Path.Combine(Path.GetTempPath(), hash)
+            let outputDirectory =
+                let dir = Path.Combine(outputPath, hash)
                 Directory.ensure dir |> ignore
                 dir
 
@@ -175,7 +175,7 @@ module Adaptify =
             let gFiles = System.Collections.Generic.List<_>()
 
             if Path.GetExtension projectFile = ".fsproj" then
-            
+
                 let realFiles = projectInfo.files
 
                 let inFiles =
@@ -183,8 +183,8 @@ module Adaptify =
                         match f with
                         | [] -> []
                         | [s] when projectInfo.target = Target.Exe -> [s]
-                        | [s] -> 
-                            if s.EndsWith ".g.fs" then 
+                        | [s] ->
+                            if s.EndsWith ".g.fs" then
                                 [s]
                             else
                                 let content = File.ReadAllText s
@@ -196,7 +196,7 @@ module Adaptify =
                             | hh :: t when hh = getOutputFile h ->
                                 h :: hh :: appendGenerated t
                             | _ ->
-                                
+
                                 let content = File.ReadAllText h
                                 let mayDefineModelTypes = modelTypeRx.IsMatch content
                                 if mayDefineModelTypes then h :: getOutputFile h :: appendGenerated t
@@ -210,27 +210,27 @@ module Adaptify =
                 let cacheFile = Path.Combine(outputDirectory, ".adaptifycache")
                 let cache = if useCache then CacheFile.tryRead log cacheFile else None
 
-                
-                let projectChanged = 
+
+                let projectChanged =
                     match cache with
                     | Some cache -> projHash <> cache.projectHash || createLenses <> cache.lenses
-                    | None -> 
+                    | None ->
                         if useCache then
                             log.debug Range.range0 "[Adaptify]   no cache file for %s" (Path.GetFileName projectFile)
                         true
 
-                let oldHashes = 
+                let oldHashes =
                     match cache with
                     | Some c -> c.fileHashes
                     | None -> Map.empty
 
                 let mutable newHashes = Map.empty
-            
+
 
 
                 log.info Range.range0 "[Adaptify] %s" (Path.GetFileName projectFile)
 
-                let info = 
+                let info =
                     String.concat "; " [
                         if useCache then "cache"
                         if createLenses then "lenses"
@@ -257,7 +257,7 @@ module Adaptify =
                 let cleanReferences =
                     projectInfo.references |> List.map (fun f ->
                         let f = Path.GetFullPath f
-                        if f.StartsWith nuget then 
+                        if f.StartsWith nuget then
                             let nugetPath = f.Substring(nuget.Length).TrimStart [| System.IO.Path.DirectorySeparatorChar; System.IO.Path.AltDirectorySeparatorChar |]
                             let parts = nugetPath.Split([| System.IO.Path.DirectorySeparatorChar; System.IO.Path.AltDirectorySeparatorChar |])
                             if parts.Length >= 2 then
@@ -270,7 +270,7 @@ module Adaptify =
                             let packPath = f.Substring(dotnetPack.Length).TrimStart [| System.IO.Path.DirectorySeparatorChar; System.IO.Path.AltDirectorySeparatorChar |]
                             let parts = packPath.Split([| System.IO.Path.DirectorySeparatorChar; System.IO.Path.AltDirectorySeparatorChar |])
                             if parts.Length >= 2 then
-                                let name = 
+                                let name =
                                     let name = parts.[0]
                                     if name.EndsWith ".Ref" then name.Substring(0, name.Length - 4)
                                     else name
@@ -278,10 +278,10 @@ module Adaptify =
                                 sprintf "pack %s (%s)" name version
                             else
                                 f
-                        else 
+                        else
                             relativePath f
                     ) |> Set.ofList
-                
+
                 log.debug Range.range0 "[Adaptify]   References:"
                 for f in cleanReferences do
                     log.debug Range.range0 "[Adaptify]     %s" f
@@ -294,14 +294,14 @@ module Adaptify =
 
                 let newFiles = System.Collections.Generic.List<string>()
                 let md5 = System.Security.Cryptography.MD5.Create()
-                let inline hash (str : string) = 
+                let inline hash (str : string) =
                     md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes str) |> System.Guid |> string
 
                 let options = toProjectOptions projectInfo
                 let mutable changed = false
 
                 let noGeneration =
-                    if designTime then  
+                    if designTime then
                         true
                     else
                         let missing = waitUntilExisting log 200 projectInfo.references
@@ -319,27 +319,27 @@ module Adaptify =
 
                                 // capture output and only print if build failed.
                                 let outputList = System.Collections.Generic.List<_>()
-                                let proc = 
+                                let proc =
                                     Process.tryStart {
                                         file        = "dotnet"
                                         workDir     = Path.GetDirectoryName path
                                         args        = args
-                                        output      = 
-                                            OutputMode.Custom (fun s m -> 
+                                        output      =
+                                            OutputMode.Custom (fun s m ->
                                                 let output = sprintf "      %s" m
                                                 outputList.Add(output)
                                                 log.debug Range.range0 "%s" output
                                             )
                                     }
                                 match proc with
-                                | Some (p, d) -> 
+                                | Some (p, d) ->
                                     p.WaitForExit()
                                     d.Dispose()
-                                    if p.ExitCode <> 0 then 
+                                    if p.ExitCode <> 0 then
                                         log.error Range.range0 "1" "    failed"
                                         for e in outputList do
                                             log.error Range.range0 "1" "%s" e
-                                | None -> 
+                                | None ->
                                     log.info Range.range0 "    success"
                                     ()
 
@@ -355,14 +355,14 @@ module Adaptify =
                         let outputFile = getOutputFile file
                         let outputExists = File.Exists outputFile
                         let fileHash = hash content
-                        let hashEquals = 
+                        let hashEquals =
                             match Map.tryFind file oldHashes with
                             | Some oldHash -> oldHash.fileHash = fileHash
                             | _ -> false
 
 
                         // just diagnostic output for strange case, which is handled with additional care.
-                        if noGeneration && not outputExists && mayDefineModelTypes then 
+                        if noGeneration && not outputExists && mayDefineModelTypes then
                             // normally this would be bad, handled in next if. we report this happened.
                             log.info Range.range0 "[Adaptify]   the output %s for file %s was not found in output during a design time build. this should not happen, as the build should have generated this one. maybe design time and compile time project infos do not match" outputFile file
 
@@ -380,7 +380,7 @@ module Adaptify =
                                     newFiles.Add file
                                     newHashes <- Map.add file { fileHash = fileHash; hasModels = false; warnings = [] } newHashes
                                     false, false
-                                elif projectChanged then 
+                                elif projectChanged then
                                     let old = match cache with | Some p -> p.projectHash | None -> ""
                                     if old <> "" then
                                         log.debug Range.range0 "[Adaptify]   project for %s changed (%A vs %A)" (relativePath file) projHash old
@@ -392,11 +392,11 @@ module Adaptify =
                                             if oldEntry.hasModels then
                                                 let generated = getOutputFile file
 
-                                                let readGeneratedHash (file : string) = 
+                                                let readGeneratedHash (file : string) =
                                                     use s = File.OpenRead file
                                                     use r = new StreamReader(s)
                                                     try
-                                                        let inputHash = 
+                                                        let inputHash =
                                                             let line = r.ReadLine()
                                                             if line.StartsWith "//" then line.Substring 2
                                                             else ""
@@ -406,7 +406,7 @@ module Adaptify =
                                                             if line.StartsWith "//" then line.Substring 2
                                                             else ""
 
-                                                        let restHash = 
+                                                        let restHash =
                                                             let str = r.ReadToEnd()
                                                             hash str
 
@@ -422,13 +422,13 @@ module Adaptify =
                                                     newFiles.Add file
                                                     newFiles.Add generated
                                                     newHashes <- Map.add file oldEntry newHashes
-                                                    for w in oldEntry.warnings do   
+                                                    for w in oldEntry.warnings do
                                                         if w.isError then hadErrors <- true
                                                         if w.code <> "internal" then
                                                             let range = Range.mkRange file (Position.mkPos w.startLine w.startCol) (Position.mkPos w.endLine w.endCol)
                                                             if w.isError then log.error range w.code "%s" w.message
                                                             else log.warn range w.code "%s" w.message
-                                                
+
                                                     if hadErrors then changed <- true
                                                     hadErrors, true
                                                 else
@@ -445,13 +445,13 @@ module Adaptify =
                                             log.debug Range.range0 "[Adaptify]   %s: file hash changed" (relativePath file)
                                             true, true
 
-                                    | None ->   
+                                    | None ->
                                         changed <- true
                                         log.debug Range.range0 "[Adaptify]   %s: no old hash" (relativePath file)
                                         true, true
                                 else
                                     true, true
-                                
+
                             if needsUpdate then
                                 let warnings = System.Collections.Generic.List<Warning>()
                                 let addWarning (isError : bool) (r : range) (code : string) (str : string) =
@@ -468,9 +468,9 @@ module Adaptify =
                                 //log.info range0 "[Adaptify]   update file %s" (relativePath projDir file)
                                 let text = FSharp.Compiler.Text.SourceText.ofString content
                                 let! (_parseResult, answer) = checker.ParseAndCheckFileInProject(file, 0, text, options)
-        
+
                                 match answer with
-                                | FSharpCheckFileAnswer.Succeeded res ->  
+                                | FSharpCheckFileAnswer.Succeeded res ->
                                     let localLogger =
                                         { new ILog with
                                             member __.debug r fmt = log.debug r fmt
@@ -479,7 +479,7 @@ module Adaptify =
                                             member __.error r c fmt = Printf.kprintf (fun str -> addWarning true r c str; log.error r c "%s" str) fmt
                                         }
 
-                                    let errs, wrns = 
+                                    let errs, wrns =
                                         res.Diagnostics
                                         |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Warning || e.Severity = FSharpDiagnosticSeverity.Error)
                                         |> Array.partition (fun err -> err.Severity = FSharpDiagnosticSeverity.Error)
@@ -508,23 +508,23 @@ module Adaptify =
                                         | _ ->
                                             []
 
-                                    let entities = 
+                                    let entities =
                                         match res.ImplementationFile with
-                                        | None -> 
+                                        | None ->
                                             log.error Range.range0 file "[Adaptify] Implementation file was None."
                                             []
                                         | Some implementation ->
                                             implementation.Declarations
                                             |> Seq.toList
                                             |> List.collect allEntities
-                                        
-                                    let definitions =   
-                                        entities 
+
+                                    let definitions =
+                                        entities
                                         |> List.choose (TypeDef.ofEntity localLogger)
-                                        |> List.choose (fun l -> 
-                                            try 
+                                        |> List.choose (fun l ->
+                                            try
                                                 l.Value |> Some
-                                            with e -> 
+                                            with e ->
                                                 log.error Range.range0 "1337" "[Adaptify] could not get type entity:%s" e.Message
                                                 None)
                                         |> List.collect (TypeDefinition.ofTypeDef localLogger createLenses [])
@@ -542,6 +542,7 @@ module Adaptify =
                                         let content = TypeDefinition.toFile log defs
                                         let result = sprintf "//%s\r\n//%s\r\n" fileHash (hash content) + content
 
+                                        log.info Range.range0 $"Writing to {outputFile}"
                                         File.WriteAllText(outputFile, result)
                                         newFiles.Add outputFile
                                         log.info Range.range0 "[Adaptify]   gen  %s" (relativePath outputFile)
@@ -559,7 +560,7 @@ module Adaptify =
                         if mayDefineModelTypes then
                             if File.Exists outputFile then
                                 gFiles.Add((relativePath file, relativePath outputFile))
-                            else 
+                            else
                                 log.debug Range.range0 "[Adaptify]   %s: output file %s does not exist" (relativePath file) (relativePath outputFile)
 
                 if not designTime then
@@ -569,7 +570,7 @@ module Adaptify =
                 let files = newFiles |> Seq.map relativePath |> String.concat "; " |> sprintf "[%s]"
                 log.debug Range.range0 "[Adaptify]   files: %s" files
 
-                let newFiles = newFiles |> Seq.toList 
+                let newFiles = newFiles |> Seq.toList
                 let genFiles = gFiles |> Seq.toList
 
                 return newFiles, genFiles
@@ -580,6 +581,6 @@ module Adaptify =
 
     let run (checker : FSharpChecker) (outputPath : string) (designTime : bool) (useCache : bool) (createLenses : bool) (log : ILog) (local : bool) (release : bool) (projectInfo : ProjectInfo) =
         try runAsync checker outputPath designTime useCache createLenses log local release projectInfo  |> Async.RunSynchronously
-        with e -> 
+        with e ->
             log.warn Range.range0 "Internal error?" "[Adaptify]   internal error: %s" (e.Message)
             [], []
